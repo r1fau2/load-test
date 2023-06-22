@@ -1,7 +1,7 @@
 This is an application for server load testing
 (specifically for tcp-calc - https://github.com/r1fau2/tcp-calc).
 
-Usage:	load-test <ip-addr> port
+Usage:	load-test <ip-addr> <port> <max_connect> <max_send_per_connect>
 
 For test tcp-calc use 7777 port
 
