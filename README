@@ -1,0 +1,33 @@
+This is an application for server load testing
+(specifically for tcp-calc - https://github.com/r1fau2/tcp-calc).
+
+Usage:	load-test <ip-addr> port
+
+For test tcp-calc use 7777 port
+
+/////////////////////////////
+
+To add 
+git remote add origin https://github.com/r1fau2/load-test.git
+git push -u origin main
+
+To clone
+git clone https://github.com/r1fau2/load-test.git
+
+/////////////////////////////
+
+To build (cmake and make are required)
+
+cd load-test
+mkdir _build
+cd _build
+cmake ../src
+make
+
+or (cmake and ninja are required)
+
+cd load-test
+mkdir _build
+cd _build
+cmake -G Ninja ../src
+ninja -j1

@@ -1,0 +1,30 @@
+This file contains major changes to load-test
+
+##########################
+
+v-0.01
+	Start of CHANGES file.
+	
+	An event-driven application has been created for server load testing
+	(specifically for tcp-calc - https://github.com/r1fau2/tcp-calc).
+	
+	The initial source code is based on files from the cpp-chat directory
+	of the archive of sample programs
+	
+	(http://www.stolyarov.info/books/extra/progintro_e2_examples.tgz)
+	
+	to the books of A. V. Stolyarov "Programming: an introduction to the profession"
+	(russian: Столяров А. В. Программирование: введение в профессию)
+	
+	(http://www.stolyarov.info/books/programming_intro/e2).
+	
+	Added:
+	Finite state machine (FSM).
+	Query generation for a single connection.
+
+##########################
+
+FORMAT:
+
+This file contains a list, in reverse chronological order, of major
+breakages or added features in load-test.
