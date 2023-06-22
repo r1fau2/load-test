@@ -2,6 +2,12 @@ This file contains major changes to load-test
 
 ##########################
 
+v-0.02_1
+	Added:
+	Generating the send-packages for multiple connections.
+	
+##########################
+
 v-0.01
 	Start of CHANGES file.
 	
@@ -20,7 +26,7 @@ v-0.01
 	
 	Added:
 	Finite state machine (FSM).
-	Query generation for a single connection.
+	Generating the send-packages for a single connection.
 
 ##########################
 
