@@ -2,7 +2,7 @@
 //#define SOCKETS_HPP_SENTRY
 
 enum {
-	wait_sec_to_exit = 1
+	wait_sec_to_exit = 2
 };
 
 class FdHandler;

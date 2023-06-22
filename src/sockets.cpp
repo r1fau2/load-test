@@ -51,18 +51,23 @@ bool EventSelector::Remove(FdHandler *h)
 
 void EventSelector::Run()
 {
+    /*
     struct timeval tvptr;
     tvptr.tv_sec = wait_sec_to_exit;
     tvptr.tv_usec = 0;
     quit_flag = false;
     do {
         int i;
-        fd_set rds;
+        fd_set rds, wrs;
         FD_ZERO(&rds);
-        for(i = 0; i <= max_fd; i++) {
-          FD_SET(i, &rds);
-        }
+        FD_ZERO(&wrs);
+         for(i = 0; i <= max_fd; i++) 
+            if(fd_array[i]) 
+                FD_SET(i, &rds);
+          
+        
         int res = select(max_fd+1, &rds, 0, 0, &tvptr);	// set timeout
+       //int res = select(max_fd+1, &rds, 0, 0, 0);
         if(res < 0) {
             if(errno == EINTR)
                 continue;
@@ -80,10 +85,46 @@ void EventSelector::Run()
             }
         }
     } while(!quit_flag);
+    
+    */
+    
+    struct timeval tvptr;
+    tvptr.tv_sec = wait_sec_to_exit;
+    tvptr.tv_usec = 0;
+    quit_flag = false;
+    do {
+        int i;
+        fd_set rds;
+        FD_ZERO(&rds);
+        for(i = 0; i <= max_fd; i++)
+          if(fd_array[i])
+			FD_SET(i, &rds);
+        
+        int res = select(max_fd+1, &rds, 0, 0, &tvptr);	// set timeout
+       //int res = select(max_fd+1, &rds, 0, 0, 0);
+        if(res < 0) {
+            if(errno == EINTR)
+                continue;
+            else
+                break;
+        }
+        if(res == 0)					// timeout quit
+			quit_flag = true;
+        if(res > 0) {
+            for(i = 0; i <= max_fd; i++) {
+                if(!fd_array[i])
+                    continue;
+                if(FD_ISSET(i, &rds))
+					fd_array[i]->Handle();  
+            }
+        }
+    } while(!quit_flag);
+     
 }
 
 FdHandler::~FdHandler()
 {
     if(own_fd)
         close(fd);
+    printf("close %d\n", GetFd());     
 }

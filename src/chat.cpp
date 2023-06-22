@@ -6,6 +6,7 @@
 #include <netdb.h>	// for struct hostent
 
 #include <sys/socket.h>
+//#include <sys/select.h> // for FD_SETSIZE
 //#include <netinet/in.h>
 //#include <sys/time.h> // for gettimeofday()
 
@@ -35,12 +36,19 @@ void ChatSession::Handle()
         the_master->RemoveSession(this);
         return;
     }
-    printf("%s\n", buffer);
     StateStep(buffer);
 }
 
 void ChatSession::StateStep(const char *str)
 {
+	count++;
+	printf("\n------------------\nsd = %d\tcount = %d\n", GetFd(), count);
+	printf("%s\n", str);
+	if (count > the_master->GetMaxSend()) {
+		the_master->RemoveSession(this);
+		return;
+	}
+	
 	char *wmsg = new char[max_out_line_length];
 
 	switch(state) {
@@ -77,15 +85,9 @@ void ChatSession::StateStep(const char *str)
 			return;	
 		}
 	}
-
 	Send(wmsg);
-	printf("%s\n", wmsg);
+	printf("%s", wmsg);
 	delete[] wmsg;
-	count++;
-	printf("count = %d\n", count);
-	if ( count == max_send )
-		the_master->RemoveSession(this);
-
 }
 /*
 
@@ -117,9 +119,10 @@ gettimeofday(&endses, NULL);
 
 //////////////////////////////////////////////////////////////////////
 
-Master::Master(struct hostent *serv, int prt, char *nm, char *ps,
-	char *ex, EventSelector *sel)
-    : name(nm), pswd(ps), expr(ex), 
+Master::Master(struct hostent *serv, int prt, int maxcnt, int maxsend,
+	char *nm, char *ps, char *ex, EventSelector *sel)
+    : max_connect(maxcnt), max_send_pc(maxsend),
+    name(nm), pswd(ps), expr(ex), 
     the_selector(sel), first(0), first_stat(0)
 {
     bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -145,35 +148,57 @@ void Master::RemoveSession(ChatSession *s)
     the_selector->Remove(s);
     item **p;
     for(p = &first; *p; p = &((*p)->next)) {
+		PrintList();
         if((*p)->s == s) {
             item *tmp = *p;
             *p = tmp->next;
             delete tmp->s;
             delete tmp;
+            PrintList();
             return;
         }
     }
 }
 
+void Master::PrintList()
+{
+	int i;
+	item *p;
+	printf(".......\n");
+	for(i = 1, p = first; p; i++, p = p->next)
+		printf("list [%d] = %p\n", i, p);
+	printf(".......\n");	
+}
+
+
 int Master::Connect() // in loop create and Add sessions
 {
-	int sd, sd1, n;
+	int sd, n;
       
-    sd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sd == -1)
-        return 1;
-	int opt = 1;
-    setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if (connect(sd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-        return 1;
+	//for (int i = 0; i < FD_SETSIZE -3; i++) {	
+     	printf("FD_SETSIZE = %d\n", FD_SETSIZE);
+     	printf("max_connect = %d\n", max_connect);
+     	printf("max_send_pc = %d\n", max_send_pc);
+     	
+    // for (int i = 0; i < FD_SETSIZE-16; i++) {	
+    for (int i = 0; i < max_connect; i++) {	
+		sd = socket(AF_INET, SOCK_STREAM, 0);
+		printf("sd = %d\n", sd);
+		if(sd == -1)
+			return 1;
+		int opt = 1;
+		setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+		if (connect(sd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
+			return 1;
      
-    item *p = new item;
-    p->next = first;
-    p->s = new ChatSession(this, sd);
-    first = p;
+		item *p = new item;
+		p->next = first;
+		p->s = new ChatSession(this, sd);
+		first = p;
+		PrintList();
 
-    the_selector->Add(p->s);
-
+		the_selector->Add(p->s);
+	}
 	return 0;
 }
 
