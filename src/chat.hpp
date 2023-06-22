@@ -64,7 +64,7 @@ public:
     char *GetExpr() {return expr;}
     int Connect(); // in loop create and Add sessions
     void RemoveSession(ChatSession *s);
-    void PrintList();
+//    void PrintList();
     void OutStatistic();
 };
 

@@ -42,8 +42,8 @@ void ChatSession::Handle()
 void ChatSession::StateStep(const char *str)
 {
 	count++;
-	printf("\n------------------\nsd = %d\tcount = %d\n", GetFd(), count);
-	printf("%s\n", str);
+	//printf("\n------------------\nsd = %d\tcount = %d\n", GetFd(), count);
+	//printf("%s\n", str);
 	if (count > the_master->GetMaxSend()) {
 		the_master->RemoveSession(this);
 		return;
@@ -86,7 +86,7 @@ void ChatSession::StateStep(const char *str)
 		}
 	}
 	Send(wmsg);
-	printf("%s", wmsg);
+	//printf("%s", wmsg);
 	delete[] wmsg;
 }
 /*
@@ -148,18 +148,18 @@ void Master::RemoveSession(ChatSession *s)
     the_selector->Remove(s);
     item **p;
     for(p = &first; *p; p = &((*p)->next)) {
-		PrintList();
+		//PrintList();
         if((*p)->s == s) {
             item *tmp = *p;
             *p = tmp->next;
             delete tmp->s;
             delete tmp;
-            PrintList();
             return;
         }
     }
 }
 
+/*
 void Master::PrintList()
 {
 	int i;
@@ -169,18 +169,18 @@ void Master::PrintList()
 		printf("list [%d] = %p\n", i, p);
 	printf(".......\n");	
 }
-
+*/
 
 int Master::Connect() // in loop create and Add sessions
 {
 	int sd, n;
       
-	//for (int i = 0; i < FD_SETSIZE -3; i++) {	
+	/*for (int i = 0; i < FD_SETSIZE -3; i++) {	
      	printf("FD_SETSIZE = %d\n", FD_SETSIZE);
      	printf("max_connect = %d\n", max_connect);
      	printf("max_send_pc = %d\n", max_send_pc);
-     	
-    // for (int i = 0; i < FD_SETSIZE-16; i++) {	
+    */ 	
+    
     for (int i = 0; i < max_connect; i++) {	
 		sd = socket(AF_INET, SOCK_STREAM, 0);
 		printf("sd = %d\n", sd);
@@ -195,10 +195,11 @@ int Master::Connect() // in loop create and Add sessions
 		p->next = first;
 		p->s = new ChatSession(this, sd);
 		first = p;
-		PrintList();
+		//PrintList();
 
 		the_selector->Add(p->s);
 	}
+	printf("--------\n");
 	return 0;
 }
 

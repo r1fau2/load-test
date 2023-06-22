@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
-// #include <sys/select.h> // for FD_SETSIZE
 #include "sockets.hpp"
 
 EventSelector::~EventSelector()
@@ -51,47 +50,11 @@ bool EventSelector::Remove(FdHandler *h)
 
 void EventSelector::Run()
 {
-    /*
     struct timeval tvptr;
     tvptr.tv_sec = wait_sec_to_exit;
     tvptr.tv_usec = 0;
     quit_flag = false;
-    do {
-        int i;
-        fd_set rds, wrs;
-        FD_ZERO(&rds);
-        FD_ZERO(&wrs);
-         for(i = 0; i <= max_fd; i++) 
-            if(fd_array[i]) 
-                FD_SET(i, &rds);
-          
-        
-        int res = select(max_fd+1, &rds, 0, 0, &tvptr);	// set timeout
-       //int res = select(max_fd+1, &rds, 0, 0, 0);
-        if(res < 0) {
-            if(errno == EINTR)
-                continue;
-            else
-                break;
-        }
-        if(res == 0)					// timeout quit
-			quit_flag = true;
-        if(res > 0) {
-            for(i = 0; i <= max_fd; i++) {
-                if(!fd_array[i])
-                    continue;
-                if(FD_ISSET(i, &rds))
-					fd_array[i]->Handle();  
-            }
-        }
-    } while(!quit_flag);
-    
-    */
-    
-    struct timeval tvptr;
-    tvptr.tv_sec = wait_sec_to_exit;
-    tvptr.tv_usec = 0;
-    quit_flag = false;
+
     do {
         int i;
         fd_set rds;
@@ -119,7 +82,6 @@ void EventSelector::Run()
             }
         }
     } while(!quit_flag);
-     
 }
 
 FdHandler::~FdHandler()
