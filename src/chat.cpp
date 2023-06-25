@@ -184,7 +184,7 @@ void Master::OutStatistic()
 	gettimeofday(&end, NULL);
     long seconds = (end.tv_sec - start.tv_sec);
     double micros = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
-	long minutes = (micros/1000000 - 1)/60;
+	long minutes = (micros/1000000 - wait_sec_to_exit)/60;
 	cout << "close " << num_connect << " connection"
 		<< "\n\n************ EndSession **************"
 		<< "\n\nBytes sent: " << bytesSend 
