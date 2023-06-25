@@ -192,7 +192,7 @@ void Master::OutStatistic()
 		<< ".\nElapsed time: ";
 	if (minutes)
 		cout << minutes << " mins ";
-	cout << std::setprecision(3) << ((micros/1000000 - 1) - 60 * minutes)
+	cout << std::setprecision(3) << ((micros/1000000 - wait_sec_to_exit) - 60 * minutes)
 		<< " secs " << "run, " << wait_sec_to_exit << " sec wait.\n";
 	if (bytesSend && bytesReceive)	
 		cout << "Average time between sends: "
