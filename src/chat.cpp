@@ -196,5 +196,5 @@ void Master::OutStatistic()
 		<< " secs " << "run, " << wait_sec_to_exit << " sec wait.\n";
 	if (bytesSend && bytesReceive)	
 		cout << "Average time between sends: "
-			<< (micros/1000000 - 1)/num_connect/num_send << " secs.\n\n";
+			<< (micros/1000000 - wait_sec_to_exit)/num_connect/num_send << " secs.\n\n";
 }
