@@ -2,6 +2,12 @@ This file contains major changes to load-test
 
 ##########################
 
+v-0.03
+	Added:
+	Statistics output.
+	
+##########################
+
 v-0.02_1
 	Added:
 	Generating the send-packages for multiple connections.
@@ -11,10 +17,11 @@ v-0.02_1
 v-0.01
 	Start of CHANGES file.
 	
-	An event-driven application has been created for server load testing
+	Created:
+	Tool for server load testing
 	(specifically for tcp-calc - https://github.com/r1fau2/tcp-calc).
 	
-	The initial source code is based on files from the cpp-chat directory
+	The source code is based on files from the cpp-chat directory
 	of the archive of sample programs
 	
 	(http://www.stolyarov.info/books/extra/progintro_e2_examples.tgz)

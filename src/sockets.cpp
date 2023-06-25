@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <sys/time.h>
-#include <sys/types.h>
+#include <iostream>
 #include <unistd.h>
-#include <errno.h>
+
 #include "sockets.hpp"
 
 EventSelector::~EventSelector()
@@ -54,7 +52,7 @@ void EventSelector::Run()
     tvptr.tv_sec = wait_sec_to_exit;
     tvptr.tv_usec = 0;
     quit_flag = false;
-
+   
     do {
         int i;
         fd_set rds;
@@ -64,7 +62,6 @@ void EventSelector::Run()
 			FD_SET(i, &rds);
         
         int res = select(max_fd+1, &rds, 0, 0, &tvptr);	// set timeout
-       //int res = select(max_fd+1, &rds, 0, 0, 0);
         if(res < 0) {
             if(errno == EINTR)
                 continue;
@@ -82,11 +79,11 @@ void EventSelector::Run()
             }
         }
     } while(!quit_flag);
+    std::cout << "\nStopRun\n";
 }
 
 FdHandler::~FdHandler()
 {
     if(own_fd)
         close(fd);
-    printf("close %d\n", GetFd());     
 }

@@ -1,9 +1,8 @@
-//#ifndef SOCKETS_HPP_SENTRY
-//#define SOCKETS_HPP_SENTRY
+#ifndef SOCKETS_HPP_SENTRY
+#define SOCKETS_HPP_SENTRY
 
 enum {
-	wait_sec_to_exit = 1
-};
+	wait_sec_to_exit = 1};
 
 class FdHandler;
 
@@ -36,4 +35,4 @@ public:
     int GetFd() const { return fd; }
 };
 
-//#endif
+#endif

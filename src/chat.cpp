@@ -1,27 +1,53 @@
-#include <stdio.h>  // for sprintf
+#include <iostream>
+#include <iomanip>
 #include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-
-#include <netdb.h>	// for struct hostent
-
 #include <sys/socket.h>
-//#include <sys/select.h> // for FD_SETSIZE
-//#include <netinet/in.h>
-//#include <sys/time.h> // for gettimeofday()
+#include <sys/time.h>	// gettimeofday
 
 #include "chat.hpp"
+
+using namespace std;
+
+Init::Init(struct hostent *svr, int prt, int nmcnt, int nmsend)
+	: server(svr), port(prt), num_connect(nmcnt),
+	num_send(nmsend)
+{
+}
+
+Init *Init::ReadStdIn(int argc, char *argv[])
+{
+	/*
+	if (argc < 5 || atoi(argv[3]) <= 0 || atoi(argv[4]) <= 0) {
+		cerr << "usage: " << argv[0] << " <ip-addr> <port> <number_of_connections ( > 0)>"
+			<< " <number_of_send_per_connection ( > 0)>\n";
+		exit(1);
+    }
+    */
+    if (argc < 5) {
+		cerr << "usage: " << argv[0] << " ip-addr port number_of_connections"
+			<< " number_of_send_per_connection\n";
+		exit(1);
+    }
+    else if (atoi(argv[3]) <= 0 || atoi(argv[4]) <= 0) {
+		cerr << "number_of_connections and number_of_send_per_connection must be > 0\n";
+		exit(1);
+    }
+    struct hostent *server = gethostbyname(argv[1]);
+    if (server == NULL) {
+        cerr << "ERROR, no such host\n";
+        exit(1);
+    }
+	int port = atoi(argv[2]);
+	int num_connect = atoi(argv[3]);
+	int num_send = atoi(argv[4]);
+	
+	return new Init(server, port, num_connect, num_send);
+}
 
 ChatSession::ChatSession(Master *a_master, int fd)
     : FdHandler(fd, true), the_master(a_master),
     state(fsm_in), count(0)
 {
-}
-
-ChatSession::~ChatSession()
-{
-    //if(name)
-    //    delete[] name;
 }
 
 void ChatSession::Send(const char *msg)
@@ -36,15 +62,14 @@ void ChatSession::Handle()
         the_master->RemoveSession(this);
         return;
     }
+    the_master->bytesReceive += rc;
     StateStep(buffer);
 }
 
 void ChatSession::StateStep(const char *str)
 {
 	count++;
-	//printf("\n------------------\nsd = %d\tcount = %d\n", GetFd(), count);
-	//printf("%s\n", str);
-	if (count > the_master->GetMaxSend()) {
+	if (count > the_master->GetNumSend()) {
 		the_master->RemoveSession(this);
 		return;
 	}
@@ -72,7 +97,7 @@ void ChatSession::StateStep(const char *str)
 		}
 		else {
 			the_master->RemoveSession(this);
-			return;	
+			return;
 		}
 		state = fsm_work;
 		break;
@@ -86,50 +111,23 @@ void ChatSession::StateStep(const char *str)
 		}
 	}
 	Send(wmsg);
-	//printf("%s", wmsg);
+	the_master->bytesSend += strlen(wmsg);
 	delete[] wmsg;
 }
-/*
-
-int bytesRead = 0, bytesWritten = 0;
-    struct timeval startses, endses;
-    gettimeofday(&startses, NULL);
-
-char buffer[256];
-    while (true) {
-		bzero(buffer, 256);
-		n = read(sd, buffer, 256);
-		if (n < 0) 
-			return 1;
-		bytesRead +=n;
-		printf("%s", buffer);
-    
-		bzero(buffer,256);
-		fgets(buffer,256,stdin);
-		if (strstr(buffer, "quit"))
-			break;
-		n = write(sd,buffer,strlen(buffer));
-		if (n < 0)
-			return 1;
-		bytesWritten += n;	
-	}
-gettimeofday(&endses, NULL);
-// close(sd);
-*/
 
 //////////////////////////////////////////////////////////////////////
 
-Master::Master(struct hostent *serv, int prt, int maxcnt, int maxsend,
-	char *nm, char *ps, char *ex, EventSelector *sel)
-    : max_connect(maxcnt), max_send_pc(maxsend),
+Master::Master(Init *init, const char *nm, const char *ps, const char *ex,
+	EventSelector *sel)
+    : num_connect(init->num_connect), num_send(init->num_send),
     name(nm), pswd(ps), expr(ex), 
-    the_selector(sel), first(0), first_stat(0)
+    the_selector(sel), first(0)
 {
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char *)serv->h_addr, (char *)&serv_addr.sin_addr.s_addr,
-		serv->h_length);
-    serv_addr.sin_port = htons(prt);
+	bcopy((char *)init->server->h_addr_list[0], (char *)&serv_addr.sin_addr.s_addr,
+		init->server->h_length);
+    serv_addr.sin_port = htons(init->port);
 }
 
 Master::~Master()
@@ -148,7 +146,6 @@ void Master::RemoveSession(ChatSession *s)
     the_selector->Remove(s);
     item **p;
     for(p = &first; *p; p = &((*p)->next)) {
-		//PrintList();
         if((*p)->s == s) {
             item *tmp = *p;
             *p = tmp->next;
@@ -159,51 +156,52 @@ void Master::RemoveSession(ChatSession *s)
     }
 }
 
-/*
-void Master::PrintList()
-{
-	int i;
-	item *p;
-	printf(".......\n");
-	for(i = 1, p = first; p; i++, p = p->next)
-		printf("list [%d] = %p\n", i, p);
-	printf(".......\n");	
-}
-*/
-
-int Master::Connect() // in loop create and Add sessions
+void Master::Connect()
 {
 	int sd, n;
-      
-	/*for (int i = 0; i < FD_SETSIZE -3; i++) {	
-     	printf("FD_SETSIZE = %d\n", FD_SETSIZE);
-     	printf("max_connect = %d\n", max_connect);
-     	printf("max_send_pc = %d\n", max_send_pc);
-    */ 	
-    
-    for (int i = 0; i < max_connect; i++) {	
+    for (int i = 0; i < num_connect; i++) {	
 		sd = socket(AF_INET, SOCK_STREAM, 0);
-		printf("sd = %d\n", sd);
-		if(sd == -1)
-			return 1;
+		if(sd == -1) {
+			cerr << "ERROR, socket not created\n";
+			exit(1);
+		}	
 		int opt = 1;
 		setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-		if (connect(sd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-			return 1;
-     
+		
+		if (connect(sd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+			cerr << "ERROR, connection not created\n";
+			exit(1);
+		}
 		item *p = new item;
 		p->next = first;
 		p->s = new ChatSession(this, sd);
 		first = p;
-		//PrintList();
 
 		the_selector->Add(p->s);
 	}
-	printf("--------\n");
-	return 0;
+	
+	cout << "\n************ StartSession ************\n\n"
+		<< "open " << num_connect << " connection\n"
+		<< "StartRun (" << num_send  << " sends per conection)...\n";
+	gettimeofday(&start, NULL);
 }
 
 void Master::OutStatistic()
 {
-
+	gettimeofday(&end, NULL);
+    long seconds = (end.tv_sec - start.tv_sec);
+    double micros = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
+	long minutes = (micros/1000000 - 1)/60;
+	cout << "close " << num_connect << " connection"
+		<< "\n\n************ EndSession **************"
+		<< "\n\nBytes sent: " << bytesSend 
+		<< ", bytes received: " << bytesReceive
+		<< ".\nElapsed time: ";
+	if (minutes)
+		cout << minutes << " mins ";
+	cout << std::setprecision(3) << ((micros/1000000 - 1) - 60 * minutes)
+		<< " secs " << "run, " << wait_sec_to_exit << " sec wait.\n";
+	if (bytesSend && bytesReceive)	
+		cout << "Average time between sends: "
+			<< (micros/1000000 - 1)/num_connect/num_send << " secs.\n\n";
 }

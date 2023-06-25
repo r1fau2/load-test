@@ -1,22 +1,22 @@
-This is an application for server load testing
+This is a tool for server load testing
 (specifically for tcp-calc - https://github.com/r1fau2/tcp-calc).
 
-Usage:	load-test <ip-addr> <port> <max_connect> <max_send_per_connect>
+Usage:	load-test ip-addr port number_of_connections number_of_send_per_connection
 
-For test tcp-calc use 7777 port
+For test tcp-calc use 7777 port.
 
-/////////////////////////////
+//////////////////////////////////////////////////////
 
-To add 
+To add: 
 git remote add origin https://github.com/r1fau2/load-test.git
 git push -u origin main
 
-To clone
+To clone:
 git clone https://github.com/r1fau2/load-test.git
 
-/////////////////////////////
+//////////////////////////////////////////////////////
 
-To build (cmake and make are required)
+To build (cmake and make are required):
 
 cd load-test
 mkdir _build
