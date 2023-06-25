@@ -16,14 +16,7 @@ Init::Init(struct hostent *svr, int prt, int nmcnt, int nmsend)
 
 Init *Init::ReadStdIn(int argc, char *argv[])
 {
-	/*
-	if (argc < 5 || atoi(argv[3]) <= 0 || atoi(argv[4]) <= 0) {
-		cerr << "usage: " << argv[0] << " <ip-addr> <port> <number_of_connections ( > 0)>"
-			<< " <number_of_send_per_connection ( > 0)>\n";
-		exit(1);
-    }
-    */
-    if (argc < 5) {
+	if (argc < 5) {
 		cerr << "usage: " << argv[0] << " ip-addr port number_of_connections"
 			<< " number_of_send_per_connection\n";
 		exit(1);
