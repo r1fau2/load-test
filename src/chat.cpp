@@ -151,7 +151,7 @@ void Master::RemoveSession(ChatSession *s)
 
 void Master::Connect()
 {
-	int sd, n;
+	int sd;
     for (int i = 0; i < num_connect; i++) {	
 		sd = socket(AF_INET, SOCK_STREAM, 0);
 		if(sd == -1) {
